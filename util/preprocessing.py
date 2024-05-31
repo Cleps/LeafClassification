@@ -3,16 +3,26 @@ import os
 import cv2
 import numpy as np
 import tensorflow as tf
-import patool
+import patoolib
 
 
 
 class Preprocessing:
     def __init__(self, path='data'):
 
+        if not os.path.exists("./data/dataimages/"):
+            os.makedirs("./data/dataimages/")
+        
+        if not os.path.exists("./data/dataimages/symptom"):
+            patoolib.extract_archive(path + './Dataset_Bracol_A.rar', outdir='./data/dataimages/')
+            print(' --Dataset extracted')
+        else:
+            print('-- Dataset already extracted')
+
         self.IMG_SIZE = 224 # Specify height and width of image to match the input format of the model
         self.CHANNELS = 3    
-    
+        path = './data/dataimages/symptom'
+
         self.cerscospora = path + '/cercospora'
         self.healthy = path + '/health'
         self.leaf_rust = path + '/rust'
