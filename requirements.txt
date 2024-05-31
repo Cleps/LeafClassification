@@ -1,1 +1,3 @@
 patool
+opencv-python
+tensorflow
