@@ -1,6 +1,13 @@
 import os
 from util.preprocessing import Preprocessing
 
+
+
+# INSTRuçõES
+# PARA O BRACOL, colocar o dataset Dataset_Bracol_A.rar na pasta data/ (esse dataset tem todas as folhas, dentro dele tem a pasta sympton)
+
+
+
 def main():
 
 
