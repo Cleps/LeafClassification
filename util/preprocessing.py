@@ -2,6 +2,7 @@
 import os
 import cv2
 import numpy as np
+from sklearn.model_selection import train_test_split
 import tensorflow as tf
 import patoolib
 
@@ -42,7 +43,7 @@ class Preprocessing:
     def create_mydataset(self):
         if not os.path.exists("./dataset"):
             os.makedirs("./dataset")
-        
+        print('creating X and y data...')
         X_train, y_train = [], []
         for filename in os.listdir(self.healthy):
             out = './dataset/{}.png'.format(filename.split('.')[0])
@@ -92,6 +93,5 @@ class Preprocessing:
 
         X = np.array(X_train)
         y = np.array(y_train)
+        print('returning X and y data')
         return X, y
-
-

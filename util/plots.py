@@ -9,10 +9,29 @@ class Plots:
     def __init__(self):
         pass
 
-    def plot_bracol_images(self):
+
+    def save_train_images(self, X_train, X_test, X_val):
+        if not os.path.exists("./output/imagesGraph"):
+            os.makedirs("./output/imagesGraph")
+        out = './output/imagesGraph/'
+
+        labels = [X_train.shape[0], X_test.shape[0], X_val.shape[0]]
+
+        index = ['Train Set', 'Test Set', 'Validation Set']
+
+        df = pd.DataFrame({'Quantidade': labels}, index=index)
+        ax = df.plot.bar(rot=0, color={'Quantidade': "red"}, width = 0.2)
+        for container in ax.containers:
+            ax.bar_label(container)
+        plt.ylabel("Dados", fontsize=15)
+        out = './output/imagesGraph/'
+        plt.savefig(out+'trainimages')
+        print('Train images graph saved in: '+out)
+
+    def save_bracol_images(self):
 
         if not os.path.exists("./output/imagesGraph"):
-                os.makedirs("./output/imagesGraph")
+            os.makedirs("./output/imagesGraph")
         out = './output/imagesGraph/'
 
         data_folder = './data/dataimages/symptom'
@@ -43,11 +62,11 @@ class Plots:
             ax.bar_label(container)
 
         plt.ylabel("Dados", fontsize=15)
-        plt.savefig(out)
+        plt.savefig(out+'bracolimages')
         print('BRACOL images graph saved in: '+out)
 
 
-    def plot_jmuben_images(self):
+    def save_jmuben_images(self):
         if not os.path.exists("./output/imagesGraph"):
             os.makedirs("./output/imagesGraph")
         out = './output/imagesGraph/'
@@ -80,5 +99,5 @@ class Plots:
         for container in ax.containers:
             ax.bar_label(container)
         plt.ylabel("Dados", fontsize=16)
-        plt.show(out)
+        plt.savefig(out+'jmubenimages')
         print('JMUBEN images graph saved in: '+out)
