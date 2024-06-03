@@ -62,7 +62,7 @@ def main():
 
 # TRAINING MODEL
     N_LABELS = 5
-    EPOCHS = 3
+    EPOCHS = 300
     LR = 0.0001
     batch_size = 8 # 32
     # Compile the model
