@@ -101,3 +101,30 @@ class Plots:
         plt.ylabel("Dados", fontsize=16)
         plt.savefig(out+'jmubenimages')
         print('JMUBEN images graph saved in: '+out)
+
+
+
+    # Func de plotar resultados
+
+    def plot_curves(self, history, title):
+        fig_1 = plt.figure(figsize=(5, 3))
+        epochs = range(1, len(history.history['loss'])+1)
+        plt.plot(epochs, history.history['loss'], label="Train loss")
+        plt.plot(epochs, history.history['val_loss'], label="Test Loss")
+        plt.title("Training Loss Curve") #: +title)
+        plt.ylabel("Loss")
+        plt.xlabel("Epochs")
+        # plt.legend();
+        plt.savefig('./output/loss_'+title+'.png')
+        #plt.close(fig_1)
+
+        fig_2 = plt.figure(figsize=(5, 3))
+        epochs = range(1, len(history.history['accuracy'])+1)
+        plt.plot(epochs, history.history['accuracy'], label="Train Acc")
+        plt.plot(epochs, history.history['val_accuracy'], label="Test Acc")
+        plt.title("Training Accuracy Curve") #: +title)
+        plt.ylabel("Accuracy")
+        plt.xlabel("Epochs")
+        # plt.legend();
+        plt.savefig('./output/acc_'+title+'.png')
+        #plt.close(fig_2)
