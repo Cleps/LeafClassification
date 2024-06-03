@@ -1,10 +1,12 @@
 import os
+from util.plots import Plots
 from util.preprocessing import Preprocessing
 
 
 
 # INSTRuçõES
-# PARA O BRACOL, colocar o dataset Dataset_Bracol_A.rar na pasta data/ (esse dataset tem todas as folhas, dentro dele tem a pasta sympton)
+# PARA O BRACOL, colocar o dataset Dataset_Bracol_A.rar na pasta data/ (esse dataset tem todas as folhas, 
+# dentro dele tem a pasta sympton)
 
 
 
@@ -15,13 +17,13 @@ def main():
 
     preprocessing = Preprocessing(dataset='bracol') # pre processar o dataset selecionando o
 
-    X, y = preprocessing.create_mydataset()
-
+    # X, y = preprocessing.create_mydataset()
   
-    print(f"Shape of X: {X.shape}")
-    print(f"Shape of y: {y.shape}")
+    # print(f"Shape of X: {X.shape}")
+    # print(f"Shape of y: {y.shape}")
 
-
+    plots = Plots()
+    plots.plot_bracol_images()
 
 if __name__ == "__main__":
     main()
