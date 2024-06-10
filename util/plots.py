@@ -71,7 +71,7 @@ class Plots:
             os.makedirs("./output/imagesGraph")
         out = './output/imagesGraph/'
 
-        data_folder = '/data/dataimages/dataset_original_aumentado'
+        data_folder = './data/dataimages/dataset_original_aumentado'
         healthy2 = len(os.listdir(data_folder +'/Healthy'))
         phome2 = len(os.listdir(data_folder +'/Phoma'))
         miner2 = len(os.listdir(data_folder +'/Miner'))

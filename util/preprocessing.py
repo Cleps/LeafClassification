@@ -1,5 +1,6 @@
  
 import os
+import shutil
 import cv2
 import numpy as np
 from sklearn.model_selection import train_test_split
@@ -9,7 +10,12 @@ import patoolib
 
 
 class Preprocessing:
-    def __init__(self, path='data', dataset='bracol'):
+    def __init__(self,delete_images=False, path='data', dataset='bracol'):
+
+        if(delete_images):
+            self.apagar_arquivos_na_pasta('./data/dataimages/')
+            self.apagar_arquivos_na_pasta('./dataset')
+            print('-- old images deleted')
 
         if(dataset == 'bracol'):
             if not os.path.exists("./data/dataimages/"):
@@ -23,18 +29,39 @@ class Preprocessing:
 
             path = './data/dataimages/symptom'
 
+            self.cerscospora = path + '/cercospora'
+            self.healthy = path + '/health'
+            self.leaf_rust = path + '/rust'
+            self.miner = path + '/miner'
+            self.phoma = path + '/phoma'
+
+        if(dataset == 'jmuben'):
+            if not os.path.exists("./data/dataimages/"):
+                os.makedirs("./data/dataimages/")
+            
+            if not os.path.exists("./data/dataimages/dataset_original_aumentado"):
+                patoolib.extract_archive(path + './dataset_jmuben.rar', outdir='./data/dataimages/')
+                print('-- Dataset extracted')
+            else:
+                print('-- Dataset already extracted')
+
+            path = './data/dataimages/dataset_original_aumentado'
+
+            self.cerscospora = path + '/Cerscospora'
+            self.healthy = path + '/Healthy'
+            self.leaf_rust = path + '/Leaf rust'
+            self.miner = path + '/Miner'
+            self.phoma = path + '/Phoma'
+
 
 
 
         self.IMG_SIZE = 224 # Specify height and width of image to match the input format of the model
         self.CHANNELS = 3    
-        
 
-        self.cerscospora = path + '/cercospora'
-        self.healthy = path + '/health'
-        self.leaf_rust = path + '/rust'
-        self.miner = path + '/miner'
-        self.phoma = path + '/phoma'
+
+
+
         self.folders = [self.healthy, self.leaf_rust, self.miner, self.cerscospora, self.phoma]
         
     
@@ -95,3 +122,11 @@ class Preprocessing:
         y = np.array(y_train)
         print('returning X and y data')
         return X, y
+
+    def apagar_arquivos_na_pasta(self, caminho_pasta):
+        for arquivo in os.listdir(caminho_pasta):
+            caminho_arquivo = os.path.join(caminho_pasta, arquivo)
+            if os.path.isfile(caminho_arquivo) or os.path.islink(caminho_arquivo):
+                os.remove(caminho_arquivo)
+            elif os.path.isdir(caminho_arquivo):
+                shutil.rmtree(caminho_arquivo)

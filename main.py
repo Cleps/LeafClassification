@@ -28,11 +28,10 @@ def main():
     # Configurar logs detalhados de dispositivos
     # tf.debugging.set_log_device_placement(True)
 
-
     # bracol --> Dataset_Bracol_A.rar
 
 # PRE PROCESSING DATA
-    preprocessing = Preprocessing(dataset='bracol') # pre processar o dataset selecionando o
+    preprocessing = Preprocessing(delete_images=True ,dataset='jmuben') # pre processar o dataset selecionando o
 
     X, y = preprocessing.create_mydataset()
   
@@ -41,7 +40,8 @@ def main():
 
     plots = Plots()
     
-    plots.save_bracol_images()
+    # plots.save_bracol_images()
+    plots.save_jmuben_images()
 
 
 # SPLITING DATA
