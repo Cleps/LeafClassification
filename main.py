@@ -1,3 +1,4 @@
+import logging
 import os
 import sys
 
@@ -14,10 +15,21 @@ import keras
 # PARA O BRACOL, colocar o dataset Dataset_Bracol_A.rar na pasta data/ (esse dataset tem todas as folhas, 
 # dentro dele tem a pasta sympton)
 
+import io
+
 
 
 def main(model='pavicnet'):
 
+
+    # # Cria um buffer para armazenar os prints
+    # log_buffer = io.StringIO()
+
+    # # Salva a saída padrão original
+    # original_stdout = sys.stdout
+
+    # # Redireciona a saída padrão para o buffer
+    # sys.stdout = log_buffer
 
  # Verificar dispositivos disponíveis
     physical_devices = tf.config.list_physical_devices('GPU')
@@ -67,7 +79,7 @@ def main(model='pavicnet'):
 
 # TRAINING MODEL
     N_LABELS = 5
-    EPOCHS = 300
+    EPOCHS = 1
     LR = 0.0001
     batch_size = 8 # 32
     # Compile the model
@@ -96,10 +108,10 @@ def main(model='pavicnet'):
 
     print('-------------  MODEL TRAINED ------------------')
 
-# SAVE MODEL
-    # modelName = 'InceptionresV1JMUBEN'  # nome do modelo
-    # model.save(f'./output/model_{modelName}.hdf5')
-    # print("Saved model to disk")
+#SAVE MODEL
+    modelName = 'pavicNet'  # nome do modelo
+    model.save(f'./output/model_{modelName}.hdf5')
+    print("Saved model to disk")
 
 # SAVE HISTORY CURVES
     plots.plot_curves(history, 'TrainingCurves')
@@ -111,5 +123,19 @@ def main(model='pavicnet'):
     print('\n\n\n---------------- EVALUATION -------------------------------\n\n\n')
     eval.evaluate(y_val, preds)
 
+    # # No final do script, salva o log em um arquivo
+    # sys.stdout = original_stdout  # Restaura a saída padrão original
+
+    # # Escreve o conteúdo do buffer em um arquivo
+    # with open('meu_log.txt', 'w') as log_file:
+    #     log_file.write(log_buffer.getvalue())
+
+    # # Limpa o buffer
+    # log_buffer.close()
+
 if __name__ == "__main__":
-    main(sys.argv[1:])
+    args = sys.argv[1:]
+    if(args == []):
+        main()
+    else:
+        main(sys.argv[1:])
