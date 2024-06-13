@@ -11,10 +11,12 @@ import patoolib
 
 class Preprocessing:
     def __init__(self,delete_images=False, path='data', dataset='bracol'):
+        self.dataset = dataset
 
         if(delete_images):
             self.apagar_arquivos_na_pasta('./data/dataimages/')
             self.apagar_arquivos_na_pasta('./dataset')
+            self.apagar_arquivos_na_pasta('./output/')
             print('-- old images deleted')
 
         if(dataset == 'bracol'):
@@ -66,6 +68,8 @@ class Preprocessing:
         
     
 
+    def getdataset(self):
+        return self.dataset
         
     def create_mydataset(self):
         if not os.path.exists("./dataset"):

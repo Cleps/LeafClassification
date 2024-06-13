@@ -1,4 +1,5 @@
 import os
+import sys
 
 import numpy as np
 from sklearn.model_selection import train_test_split
@@ -15,7 +16,7 @@ import keras
 
 
 
-def main():
+def main(model='pavicnet'):
 
 
  # Verificar dispositivos disponíveis
@@ -31,7 +32,7 @@ def main():
     # bracol --> Dataset_Bracol_A.rar
 
 # PRE PROCESSING DATA
-    preprocessing = Preprocessing(delete_images=True ,dataset='jmuben') # pre processar o dataset selecionando o
+    preprocessing = Preprocessing(delete_images=True, dataset='jmuben') # pre processar o dataset selecionando o
 
     X, y = preprocessing.create_mydataset()
   
@@ -40,8 +41,11 @@ def main():
 
     plots = Plots()
     
-    # plots.save_bracol_images()
-    plots.save_jmuben_images()
+
+    if(preprocessing.getdataset() == 'bracol'):
+        plots.save_bracol_images()
+    if(preprocessing.getdataset() == 'jmuben'):
+        plots.save_jmuben_images()
 
 
 # SPLITING DATA
@@ -54,8 +58,9 @@ def main():
 
 
 # DEFINING MODEL
-    pavicnet = PavicNetMC()
-    model = pavicnet.def_pavic_model()
+    if (model == 'pavicnet'):
+        pavicnet = PavicNetMC()
+        model = pavicnet.def_pavic_model()
     # model.summary()
 
 
@@ -107,4 +112,4 @@ def main():
     eval.evaluate(y_val, preds)
 
 if __name__ == "__main__":
-    main()
+    main(sys.argv[1:])
