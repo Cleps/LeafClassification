@@ -1,25 +1,23 @@
- 
 import os
 import shutil
 import cv2
 import numpy as np
 from sklearn.model_selection import train_test_split
-import tensorflow as tf
+import torch
+from torchvision import transforms
 import patoolib
 
-
-
 class Preprocessing:
-    def __init__(self,delete_images=False, path='data', dataset='bracol'):
+    def __init__(self, delete_images=False, path='data', dataset='bracol'):
         self.dataset = dataset
 
-        if(delete_images):
+        if delete_images:
             self.apagar_arquivos_na_pasta('./data/dataimages/')
             self.apagar_arquivos_na_pasta('./dataset')
             self.apagar_arquivos_na_pasta('./output/')
             print('-- old images deleted')
 
-        if(dataset == 'bracol'):
+        if dataset == 'bracol':
             if not os.path.exists("./data/dataimages/"):
                 os.makedirs("./data/dataimages/")
             
@@ -37,7 +35,7 @@ class Preprocessing:
             self.miner = path + '/miner'
             self.phoma = path + '/phoma'
 
-        if(dataset == 'jmuben'):
+        if dataset == 'jmuben':
             if not os.path.exists("./data/dataimages/"):
                 os.makedirs("./data/dataimages/")
             
@@ -55,75 +53,53 @@ class Preprocessing:
             self.miner = path + '/Miner'
             self.phoma = path + '/Phoma'
 
-
-
-
         self.IMG_SIZE = 224 # Specify height and width of image to match the input format of the model
         self.CHANNELS = 3    
 
-
-
-
         self.folders = [self.healthy, self.leaf_rust, self.miner, self.cerscospora, self.phoma]
-        
-    
 
     def getdataset(self):
         return self.dataset
-        
+
     def create_mydataset(self):
         if not os.path.exists("./dataset"):
             os.makedirs("./dataset")
         print('creating X and y data...')
         X_train, y_train = [], []
+        transform = transforms.Compose([
+            transforms.ToPILImage(),
+            transforms.Resize((224, 224)),
+            transforms.ToTensor(),
+            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+        ])
         for filename in os.listdir(self.healthy):
-            out = './dataset/{}.png'.format(filename.split('.')[0])
-            image = cv2.imread(self.healthy+'/'+filename)
-            cv2.imwrite(out, image)
-            img = tf.keras.utils.load_img(out, target_size = (224, 224, 1),color_mode="rgb")
-            img = tf.keras.utils.img_to_array(img)
-            img= img/255.
-            X_train.append(img)
-            y_train.append([1, 0, 0, 0, 0])
+            image = cv2.imread(self.healthy + '/' + filename)
+            image = transform(image)
+            X_train.append(image)
+            y_train.append(0)  # class index for healthy
         for filename in os.listdir(self.leaf_rust):
-            out = './dataset/{}.png'.format(filename.split('.')[0])
-            image = cv2.imread(self.leaf_rust+'/'+filename)
-            cv2.imwrite(out, image)
-            img = tf.keras.utils.load_img(out, target_size = (224, 224, 1),color_mode="rgb")
-            img = tf.keras.utils.img_to_array(img)
-            img= img/255.
-            X_train.append(img)
-            y_train.append([0, 1, 0, 0, 0])
+            image = cv2.imread(self.leaf_rust + '/' + filename)
+            image = transform(image)
+            X_train.append(image)
+            y_train.append(1)  # class index for leaf rust
         for filename in os.listdir(self.miner):
-            out = './dataset/{}.png'.format(filename.split('.')[0])
-            image = cv2.imread(self.miner+'/'+filename)
-            cv2.imwrite(out, image)
-            img = tf.keras.utils.load_img(out, target_size = (224, 224, 1),color_mode="rgb")
-            img = tf.keras.utils.img_to_array(img)
-            img= img/255.
-            X_train.append(img)
-            y_train.append([0, 0, 1, 0, 0])
+            image = cv2.imread(self.miner + '/' + filename)
+            image = transform(image)
+            X_train.append(image)
+            y_train.append(2)  # class index for miner
         for filename in os.listdir(self.cerscospora):
-            out = './dataset/{}.png'.format(filename.split('.')[0])
-            image = cv2.imread(self.cerscospora+'/'+filename)
-            cv2.imwrite(out, image)
-            img = tf.keras.utils.load_img(out, target_size = (224, 224, 1),color_mode="rgb")
-            img = tf.keras.utils.img_to_array(img)
-            img= img/255.
-            X_train.append(img)
-            y_train.append([0, 0, 0, 1, 0])
+            image = cv2.imread(self.cerscospora + '/' + filename)
+            image = transform(image)
+            X_train.append(image)
+            y_train.append(3)  # class index for cercospora
         for filename in os.listdir(self.phoma):
-            out = './dataset/{}.png'.format(filename.split('.')[0])
-            image = cv2.imread(self.phoma+'/'+filename)
-            cv2.imwrite(out, image)
-            img = tf.keras.utils.load_img(out, target_size = (224, 224, 1),color_mode="rgb")
-            img = tf.keras.utils.img_to_array(img)
-            img= img/255.
-            X_train.append(img)
-            y_train.append([0, 0, 0, 0, 1])
+            image = cv2.imread(self.phoma + '/' + filename)
+            image = transform(image)
+            X_train.append(image)
+            y_train.append(4)  # class index for phoma
 
-        X = np.array(X_train)
-        y = np.array(y_train)
+        X = torch.stack(X_train)
+        y = torch.tensor(y_train)
         print('returning X and y data')
         return X, y
 

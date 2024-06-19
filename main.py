@@ -1,141 +1,90 @@
-import logging
 import os
-import sys
-
 import numpy as np
 from sklearn.model_selection import train_test_split
-import tensorflow as tf
+import torch
+import torch.nn as nn
+import torch.optim as optim
+import torchvision.transforms as transforms
+import torchvision.datasets as datasets
+from torchvision import models
 from util.evaluation import Evaluation
 from util.plots import Plots
 from util.preprocessing import Preprocessing
-from models.pavicnet_script import PavicNetMC
-import keras
 
-# INSTRuçõES
-# PARA O BRACOL, colocar o dataset Dataset_Bracol_A.rar na pasta data/ (esse dataset tem todas as folhas, 
-# dentro dele tem a pasta sympton)
-
-import io
-
-
-
-def main(model='pavicnet'):
-
-
-    # # Cria um buffer para armazenar os prints
-    # log_buffer = io.StringIO()
-
-    # # Salva a saída padrão original
-    # original_stdout = sys.stdout
-
-    # # Redireciona a saída padrão para o buffer
-    # sys.stdout = log_buffer
-
- # Verificar dispositivos disponíveis
-    physical_devices = tf.config.list_physical_devices('GPU')
-    if len(physical_devices) > 0:
-        print(f"GPUs disponíveis: {physical_devices}")
+def main():
+    # Verificar se há GPU disponível
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    
+    if torch.cuda.is_available():
+        print(f"GPU disponível: {torch.cuda.get_device_name(0)}")
     else:
-        print("Nenhuma GPU encontrada. Verifique a instalação do TensorFlow e os drivers da GPU.")
+        print("Nenhuma GPU encontrada. Verifique a instalação do PyTorch e os drivers da GPU.")
 
-    # Configurar logs detalhados de dispositivos
-    # tf.debugging.set_log_device_placement(True)
-
-    # bracol --> Dataset_Bracol_A.rar
-
-# PRE PROCESSING DATA
-    preprocessing = Preprocessing(delete_images=True, dataset='jmuben') # pre processar o dataset selecionando o
-
+    # PRE PROCESSING DATA
+    preprocessing = Preprocessing(dataset='bracol')
     X, y = preprocessing.create_mydataset()
   
-    # print(f"Shape of X: {X.shape}")
-    # print(f"Shape of y: {y.shape}")
-
     plots = Plots()
+    plots.save_bracol_images()
+
+    # SPLITING DATA
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=20, shuffle=True)
+    X_val, X_test, y_val, y_test = train_test_split(X_test, y_test, test_size=0.5, random_state=20, shuffle=True)
     
+    plots.save_train_images(X_train, X_test, X_val)
 
-    if(preprocessing.getdataset() == 'bracol'):
-        plots.save_bracol_images()
-    if(preprocessing.getdataset() == 'jmuben'):
-        plots.save_jmuben_images()
+    # Load ResNet50
+    model = models.resnet50(pretrained=True)
+    num_ftrs = model.fc.in_features
+    model.fc = nn.Linear(num_ftrs, 5)  # 5 classes
+    model = model.to(device)
 
+    criterion = nn.CrossEntropyLoss()
+    optimizer = optim.Adam(model.parameters(), lr=0.0001)
 
-# SPLITING DATA
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=20, shuffle=True) # random_state=20,
-    X_val, X_test, y_val, y_test = train_test_split(X_test, y_test, test_size=0.5, random_state=20, shuffle=True) # random_state=20,
-    del X
-    del y
-
-    plots.save_train_images(X_train,X_test,X_val)
-
-
-# DEFINING MODEL
-    if (model == 'pavicnet'):
-        pavicnet = PavicNetMC()
-        model = pavicnet.def_pavic_model()
-    # model.summary()
-
-
-
-# TRAINING MODEL
-    N_LABELS = 5
-    EPOCHS = 1
-    LR = 0.0001
-    batch_size = 8 # 32
-    # Compile the model
-
-    # early stop
-    callback = keras.callbacks.EarlyStopping(
-        monitor="val_loss",
-        patience=30,
-        mode="auto",
-        restore_best_weights=True,
-        start_from_epoch=0,
-    )
+    # TRAINING MODEL
+    EPOCHS = 300
+    batch_size = 8
 
     print('------------  TRAINING MODEL -------------------')
-    model.compile(
-    optimizer=tf.keras.optimizers.Adam(learning_rate=LR),
-    #loss='categorical_crossentropy', # categorical cross
-    loss='binary_crossentropy', # categorical cross
-    metrics=['accuracy'])
-
-    history = model.fit(X_train, y_train,
-                batch_size=batch_size,
-                epochs=EPOCHS,
-                callbacks = [callback],
-                validation_data=(X_test, y_test))
+    for epoch in range(EPOCHS):
+        model.train()
+        running_loss = 0.0
+        correct = 0
+        total = 0
+        for i in range(0, len(X_train), batch_size):
+            inputs = X_train[i:i+batch_size].to(device)
+            labels = y_train[i:i+batch_size].to(device)
+            
+            optimizer.zero_grad()
+            outputs = model(inputs)
+            loss = criterion(outputs, labels)
+            loss.backward()
+            optimizer.step()
+            
+            running_loss += loss.item()
+            _, predicted = torch.max(outputs.data, 1)
+            total += labels.size(0)
+            correct += (predicted == labels).sum().item()
+        
+        print(f"Epoch [{epoch+1}/{EPOCHS}], Loss: {running_loss/total}, Accuracy: {100 * correct/total}")
 
     print('-------------  MODEL TRAINED ------------------')
 
-#SAVE MODEL
-    modelName = 'pavicNet'  # nome do modelo
-    model.save(f'./output/model_{modelName}.hdf5')
-    print("Saved model to disk")
+    # SAVE MODEL
+    model_name = 'ResNet50_bracol.pth'
+    torch.save(model.state_dict(), model_name)
+    print("Model saved to disk")
 
-# SAVE HISTORY CURVES
-    plots.plot_curves(history, 'TrainingCurves')
-
-    preds = model.predict(X_val)
-    preds = np.array(preds> 0.2) #limiar
-
+    # Evaluation
+    model.eval()
+    with torch.no_grad():
+        val_outputs = model(X_val.to(device))
+        _, val_preds = torch.max(val_outputs, 1)
+    
     eval = Evaluation()
     print('\n\n\n---------------- EVALUATION -------------------------------\n\n\n')
-    eval.evaluate(y_val, preds)
-
-    # # No final do script, salva o log em um arquivo
-    # sys.stdout = original_stdout  # Restaura a saída padrão original
-
-    # # Escreve o conteúdo do buffer em um arquivo
-    # with open('meu_log.txt', 'w') as log_file:
-    #     log_file.write(log_buffer.getvalue())
-
-    # # Limpa o buffer
-    # log_buffer.close()
+    eval.evaluate(y_val.cpu().numpy(), val_preds.cpu().numpy())
 
 if __name__ == "__main__":
-    args = sys.argv[1:]
-    if(args == []):
-        main()
-    else:
-        main(sys.argv[1:])
+    main()
